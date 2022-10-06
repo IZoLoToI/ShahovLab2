@@ -2,6 +2,7 @@
 Отчет по лабораторной работе #2 выполнил(а):
 - Шахов Артем Эдуардович
 - ХИВТ31
+
 Отметка о выполнении заданий (заполняется студентом):
 
 | Задание | Выполнение | Баллы |
@@ -35,7 +36,7 @@
 - ✨Magic ✨
 
 ## Цель работы
-познакомиться с программными средствами для организции
+Познакомиться с программными средствами для организции
 передачи данных между инструментами google, Python и Unity
 
 ## Задание 1
@@ -234,10 +235,99 @@ while i <= len(mon):
 ###Самостоятельно разработать сценарий воспроизведения звукового
 сопровождения в Unity в зависимости от изменения считанных данных в задании 2
 
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.Networking;
+using SimpleJSON;
+
+public class GG : MonoBehaviour
+{
+    public AudioClip goodSpeak;
+    public AudioClip normalSpeak;
+    public AudioClip badSpeak;
+    private AudioSource selectAudio;
+    private Dictionary<string, float> dataSet = new Dictionary<string, float>();
+    private bool statusStart = false;
+    private int i = 1;
+
+    void Start()
+    {
+        StartCoroutine(GoogleSheets());
+    }
+
+    void Update()
+    {
+        if (dataSet["Mon_" + i.ToString()] <= 500 & statusStart == false & i != dataSet.Count)
+        {
+            StartCoroutine(PlaySelectAudioGood());
+            Debug.Log(dataSet["Mon_" + i.ToString()]);
+        }
+
+        if (dataSet["Mon_" + i.ToString()] > 200 & dataSet["Mon_" + i.ToString()] < 1000 & statusStart == false & i != dataSet.Count)
+        {
+            StartCoroutine(PlaySelectAudioNormal());
+            Debug.Log(dataSet["Mon_" + i.ToString()]);
+        }
+
+        if (dataSet["Mon_" + i.ToString()] >= 400 & statusStart == false & i != dataSet.Count)
+        {
+            StartCoroutine(PlaySelectAudioBad());
+            Debug.Log(dataSet["Mon_" + i.ToString()]);
+        }
+    }
+
+    IEnumerator GoogleSheets()
+    {
+        UnityWebRequest curentResp = UnityWebRequest.Get("https://sheets.googleapis.com/v4/spreadsheets/14hEl7sB87JhZ669a-VrO4tbMPxCPUplXg7eQStIGd-E/values/Лист1?key=AIzaSyADl0edhFFqpZygeofUFov3BH1oZjNywos");
+        yield return curentResp.SendWebRequest();
+        string rawResp = curentResp.downloadHandler.text;
+        var rawJson = JSON.Parse(rawResp);
+        foreach (var itemRawJson in rawJson["values"])
+        {
+            var parseJson = JSON.Parse(itemRawJson.ToString());
+            var selectRow = parseJson[0].AsStringList;
+            dataSet.Add(("Mon_" + selectRow[0]), float.Parse(selectRow[1]));
+        }
+    }
+
+    IEnumerator PlaySelectAudioGood()
+    {
+        statusStart = true;
+        selectAudio = GetComponent<AudioSource>();
+        selectAudio.clip = goodSpeak;
+        selectAudio.Play();
+        yield return new WaitForSeconds(3);
+        statusStart = false;
+        i++;
+    }
+    IEnumerator PlaySelectAudioNormal()
+    {
+        statusStart = true;
+        selectAudio = GetComponent<AudioSource>();
+        selectAudio.clip = normalSpeak;
+        selectAudio.Play();
+        yield return new WaitForSeconds(3);
+        statusStart = false;
+        i++;
+    }
+    IEnumerator PlaySelectAudioBad()
+    {
+        statusStart = true;
+        selectAudio = GetComponent<AudioSource>();
+        selectAudio.clip = badSpeak;
+        selectAudio.Play();
+        yield return new WaitForSeconds(4);
+        statusStart = false;
+        i++;
+    }
+}
+
+![image](https://user-images.githubusercontent.com/104593248/194427130-ab9e26a5-7681-42d6-9a2c-3e36ddf94bc2.png)
 
 
 ## Выводы
-Было интересно поработать с Unity, привязать это все к Таблице Гугл, поработать с Python. Я считаю, что у меня получилось справится с этим заданием, узнал много нового, разобрался в коде
+Я научился заполнять Google-таблицу с помощью Python, интегрировать линейную регрессию в Python, также разобрался с тем, как подключить Unity к таблице и как обрабатывать данные с этой таблицы и выводить определенный звук в зависимости от этих значений
 
 | Plugin | README |
 | ------ | ------ |
